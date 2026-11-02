@@ -1,21 +1,9 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useRouter } from 'next/navigation'
 import { AVATARS, getAvatar, getRank, getNextRank } from '../../lib/helpers'
 
-function Particles({ count = 20 }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const c = ref.current; if (!c) return; const ctx = c.getContext('2d'); let id
-    const p = []; const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight }
-    resize(); window.addEventListener('resize', resize)
-    for (let i = 0; i < count; i++) p.push({ x: Math.random()*c.width, y: Math.random()*c.height, r: Math.random()*1.5+0.5, dx: (Math.random()-0.5)*0.2, dy: (Math.random()-0.5)*0.2, o: Math.random()*0.12+0.04 })
-    function draw() { ctx.clearRect(0,0,c.width,c.height); for(const d of p){d.x+=d.dx;d.y+=d.dy;if(d.x<0)d.x=c.width;if(d.x>c.width)d.x=0;if(d.y<0)d.y=c.height;if(d.y>c.height)d.y=0;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${d.o})`;ctx.fill()}id=requestAnimationFrame(draw)}
-    draw(); return () => { cancelAnimationFrame(id); window.removeEventListener('resize', resize) }
-  }, [count])
-  return <canvas ref={ref} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
-}
 
 export default function Profile() {
   const [user, setUser] = useState(null)
@@ -73,11 +61,10 @@ export default function Profile() {
 
   return (
     <div style={{ minHeight: '100dvh', position: 'relative' }}>
-      <Particles />
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div className="navbar">
-          <img src="/lapizblue-logo.png" alt="LapizBlue" style={{ height: 26, filter: 'brightness(1.8)' }} />
-          <div style={{ fontFamily: 'Rajdhani', fontSize: 18, fontWeight: 700 }}>Profile</div>
+          <img src="/lapizblue-logo.webp" alt="LapizBlue" width={105} height={26} style={{ height: 26, width: 'auto', filter: 'brightness(1.8)' }} />
+          <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 18, fontWeight: 700 }}>Profile</div>
           <button className="btn btn-ghost btn-sm" style={{ width: 'auto' }} onClick={() => router.push('/dashboard')}>Back</button>
         </div>
 
@@ -91,7 +78,7 @@ export default function Profile() {
                 <div style={{ width: 90, height: 90, borderRadius: '50%', background: currentAvatar.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 44, margin: '0 auto 16px', border: '3px solid rgba(255,255,255,0.15)', boxShadow: `0 0 24px ${currentAvatar.color}30` }}>
                   {currentAvatar.emoji}
                 </div>
-                <div style={{ fontFamily: 'Rajdhani', fontSize: 26, fontWeight: 800 }}>{user.username}</div>
+                <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 26, fontWeight: 800 }}>{user.username}</div>
                 {(user.first_name || user.last_name) && (
                   <div style={{ fontSize: 14, color: 'var(--muted)', marginTop: 4 }}>{user.first_name} {user.last_name}</div>
                 )}
@@ -113,7 +100,7 @@ export default function Profile() {
                   { val: badges.length, label: 'Badges', color: '#fbbf24' },
                 ].map(s => (
                   <div key={s.label} className="stat-card">
-                    <div style={{ fontFamily: 'Rajdhani', fontSize: 22, fontWeight: 800, color: s.color }}>{s.val}</div>
+                    <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 22, fontWeight: 800, color: s.color }}>{s.val}</div>
                     <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{s.label}</div>
                   </div>
                 ))}

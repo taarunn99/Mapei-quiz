@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useRouter } from 'next/navigation'
 import { getAvatar, getRank } from '../../lib/helpers'
@@ -7,18 +7,6 @@ import { getAvatar, getRank } from '../../lib/helpers'
 const MEDALS = ['🥇', '🥈', '🥉']
 const MEDAL_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32']
 
-function Particles({ count = 20 }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const c = ref.current; if (!c) return; const ctx = c.getContext('2d'); let id
-    const p = []; const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight }
-    resize(); window.addEventListener('resize', resize)
-    for (let i = 0; i < count; i++) p.push({ x: Math.random()*c.width, y: Math.random()*c.height, r: Math.random()*1.5+0.5, dx: (Math.random()-0.5)*0.2, dy: (Math.random()-0.5)*0.2, o: Math.random()*0.12+0.04 })
-    function draw() { ctx.clearRect(0,0,c.width,c.height); for(const d of p){d.x+=d.dx;d.y+=d.dy;if(d.x<0)d.x=c.width;if(d.x>c.width)d.x=0;if(d.y<0)d.y=c.height;if(d.y>c.height)d.y=0;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${d.o})`;ctx.fill()}id=requestAnimationFrame(draw)}
-    draw(); return () => { cancelAnimationFrame(id); window.removeEventListener('resize', resize) }
-  }, [count])
-  return <canvas ref={ref} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
-}
 
 export default function Leaderboard() {
   const [allTimeData, setAllTimeData] = useState([])
@@ -64,11 +52,10 @@ export default function Leaderboard() {
 
   return (
     <div style={{ minHeight: '100dvh', position: 'relative' }}>
-      <Particles />
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div className="navbar">
-          <img src="/lapizblue-logo.png" alt="LapizBlue" style={{ height: 26, filter: 'brightness(1.8)' }} />
-          <div style={{ fontFamily: 'Rajdhani', fontSize: 18, fontWeight: 700 }}>Leaderboard</div>
+          <img src="/lapizblue-logo.webp" alt="LapizBlue" width={105} height={26} style={{ height: 26, width: 'auto', filter: 'brightness(1.8)' }} />
+          <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 18, fontWeight: 700 }}>Leaderboard</div>
           <button className="btn btn-ghost btn-sm" style={{ width: 'auto' }} onClick={() => router.push(user?.role === 'admin' ? '/admin' : '/dashboard')}>Back</button>
         </div>
         <div className="page">
@@ -96,9 +83,9 @@ export default function Leaderboard() {
                         <div className="animate-scale" style={{ fontSize: isFirst ? 36 : 26, marginBottom: 4, animationDelay: `${i * 0.1}s` }}>{MEDALS[i]}</div>
                         <div className="card" style={{ padding: isFirst ? '20px 10px' : '14px 8px', borderColor: MEDAL_COLORS[i], borderWidth: 2, boxShadow: isFirst ? `0 0 24px ${MEDAL_COLORS[0]}20` : 'var(--shadow)' }}>
                           <div style={{ width: isFirst ? 44 : 34, height: isFirst ? 44 : 34, borderRadius: '50%', background: av.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isFirst ? 22 : 16, margin: '0 auto 6px' }}>{av.emoji}</div>
-                          <div style={{ fontWeight: 700, fontSize: isFirst ? 14 : 12, fontFamily: 'Rajdhani' }}>{row.username}</div>
+                          <div style={{ fontWeight: 700, fontSize: isFirst ? 14 : 12, fontFamily: 'var(--font-rajdhani)' }}>{row.username}</div>
                           <div style={{ fontSize: 10, color: rk.color, fontWeight: 600, marginTop: 2 }}>{rk.icon} {rk.name}</div>
-                          <div style={{ fontFamily: 'Rajdhani', fontSize: isFirst ? 24 : 18, fontWeight: 900, color: MEDAL_COLORS[i], marginTop: 4 }}>{row.xp || 0} XP</div>
+                          <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: isFirst ? 24 : 18, fontWeight: 900, color: MEDAL_COLORS[i], marginTop: 4 }}>{row.xp || 0} XP</div>
                           {row.id === user?.id && <div style={{ fontSize: 10, color: '#60a5fa', marginTop: 4 }}>You</div>}
                         </div>
                       </div>
@@ -113,14 +100,14 @@ export default function Leaderboard() {
                 const isMe = row.id === user?.id
                 return (
                   <div key={row.id} className="card animate-fade" style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 12, animationDelay: `${(i + 1) * 0.05}s`, borderColor: isMe ? 'rgba(96,165,250,0.3)' : undefined, background: isMe ? 'rgba(96,165,250,0.06)' : undefined }}>
-                    <div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 800, color: 'var(--muted)', width: 30, textAlign: 'center' }}>#{i + 4}</div>
+                    <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 800, color: 'var(--muted)', width: 30, textAlign: 'center' }}>#{i + 4}</div>
                     <div style={{ width: 32, height: 32, borderRadius: '50%', background: av.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{av.emoji}</div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: 14, fontFamily: 'Rajdhani' }}>{row.username} {isMe ? <span style={{ color: '#60a5fa', fontSize: 11 }}>(You)</span> : ''}</div>
+                      <div style={{ fontWeight: 700, fontSize: 14, fontFamily: 'var(--font-rajdhani)' }}>{row.username} {isMe ? <span style={{ color: '#60a5fa', fontSize: 11 }}>(You)</span> : ''}</div>
                       <span style={{ fontSize: 10, color: rk.color, fontWeight: 600 }}>{rk.icon} {rk.name}</span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 800 }}>{row.xp || 0} XP</div>
+                      <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 800 }}>{row.xp || 0} XP</div>
                     </div>
                   </div>
                 )

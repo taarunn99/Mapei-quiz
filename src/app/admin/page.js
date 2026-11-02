@@ -2,25 +2,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useRouter } from 'next/navigation'
+import Toast from '../../components/Toast'
+import dynamic from 'next/dynamic'
+
+const HrAdmin = dynamic(() => import('../../components/HrAdmin'), { ssr: false, loading: () => <div className="loading-screen" style={{ minHeight: 200 }}><div className="spinner" /></div> })
 
 const LEVEL_CLASS = { Foundation: 'level-foundation', Practitioner: 'level-practitioner', Advanced: 'level-advanced', Expert: 'level-expert' }
 
-function Particles({ count = 25 }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const c = ref.current; if (!c) return; const ctx = c.getContext('2d'); let id
-    const p = []; const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight }
-    resize(); window.addEventListener('resize', resize)
-    for (let i = 0; i < count; i++) p.push({ x: Math.random()*c.width, y: Math.random()*c.height, r: Math.random()*1.5+0.5, dx: (Math.random()-0.5)*0.2, dy: (Math.random()-0.5)*0.2, o: Math.random()*0.15+0.05 })
-    function draw() { ctx.clearRect(0,0,c.width,c.height); for(const d of p){d.x+=d.dx;d.y+=d.dy;if(d.x<0)d.x=c.width;if(d.x>c.width)d.x=0;if(d.y<0)d.y=c.height;if(d.y>c.height)d.y=0;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${d.o})`;ctx.fill()}id=requestAnimationFrame(draw)}
-    draw(); return () => { cancelAnimationFrame(id); window.removeEventListener('resize', resize) }
-  }, [count])
-  return <canvas ref={ref} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
-}
 
 export default function Admin() {
   const [user, setUser] = useState(null)
-  const [tab, setTab] = useState('approvals')
+  const [tab, setTab] = useState('hr')
   const [pending, setPending] = useState([])
   const [reviewIndex, setReviewIndex] = useState(0)
   const [users, setUsers] = useState([])
@@ -38,6 +30,8 @@ export default function Admin() {
   const [csvStatus, setCsvStatus] = useState('')
   const [csvCount, setCsvCount] = useState(0)
   const csvRef = useRef(null)
+  const [toast, setToast] = useState(null)
+  const notify = (message, type = 'success') => setToast({ message, type })
   const router = useRouter()
 
   useEffect(() => {
@@ -65,15 +59,15 @@ export default function Admin() {
   async function approveQ(id) { await supabase.from('questions').update({ approved: true }).eq('id', id); const u = pending.filter(q => q.id !== id); setPending(u); setTotalQuestions(t => t + 1); if (reviewIndex >= u.length) setReviewIndex(Math.max(0, u.length - 1)) }
   async function deleteQ(id) { await supabase.from('questions').delete().eq('id', id); const u = pending.filter(q => q.id !== id); setPending(u); if (reviewIndex >= u.length) setReviewIndex(Math.max(0, u.length - 1)) }
   async function approveAll() { const c = pending.length; await supabase.from('questions').update({ approved: true }).eq('approved', false); setPending([]); setTotalQuestions(t => t + c) }
-  async function addManualQ() { if (!newQ.question) { alert('Please enter a question'); return }; await supabase.from('questions').insert([{ ...newQ, approved: true }]); setNewQ({ question: '', option_a: '', option_b: '', option_c: '', option_d: '', correct_answer: 'a', difficulty: 'Foundation', category: 'General Products', explanation: '' }); setTotalQuestions(t => t + 1); alert('Question added!') }
+  async function addManualQ() { if (!newQ.question) { notify('Please enter a question', 'error'); return }; await supabase.from('questions').insert([{ ...newQ, approved: true }]); setNewQ({ question: '', option_a: '', option_b: '', option_c: '', option_d: '', correct_answer: 'a', difficulty: 'Foundation', category: 'General Products', explanation: '' }); setTotalQuestions(t => t + 1); notify('Question added!') }
   async function scrapeAndGenerate() { setScrapeStatus('Generating questions...'); try { const res = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: scrapeUrl }) }); const data = await res.json(); setScrapeStatus(data.message || 'Done!'); loadAll() } catch (e) { setScrapeStatus('Error: ' + e.message) } }
-  async function assignQuiz() { const { data: u } = await supabase.from('users').select('id').eq('username', assignTo).single(); if (!u) { alert('User not found'); return }; await supabase.from('assignments').insert([{ assigned_by: user?.id, assigned_to: u.id, quiz_level: assignLevel, due_date: assignDue || null, completed: false }]); alert(`Quiz assigned to ${assignTo}!`); setAssignTo('') }
+  async function assignQuiz() { const { data: u } = await supabase.from('users').select('id').eq('username', assignTo).single(); if (!u) { notify('User not found', 'error'); return }; await supabase.from('assignments').insert([{ assigned_by: user?.id, assigned_to: u.id, quiz_level: assignLevel, due_date: assignDue || null, completed: false }]); notify(`Quiz assigned to ${assignTo}!`); setAssignTo('') }
 
   async function approveUser(u) {
     await supabase.from('users').update({ status: 'approved' }).eq('id', u.id)
     try { await fetch('/api/send-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'approved', data: { first_name: u.first_name, email: u.email, username: u.username } }) }) } catch (e) {}
     setPendingUsers(prev => prev.filter(p => p.id !== u.id))
-    alert(`${u.first_name} ${u.last_name} approved! Welcome email sent.`)
+    notify(`${u.first_name} ${u.last_name} approved! Welcome email sent.`)
   }
 
   async function handleCsvImport(e) {
@@ -121,19 +115,19 @@ export default function Admin() {
   async function rejectUser(u) {
     await supabase.from('users').delete().eq('id', u.id)
     setPendingUsers(prev => prev.filter(p => p.id !== u.id))
-    alert(`${u.username} rejected and removed.`)
+    notify(`${u.username} rejected and removed.`)
   }
 
   if (!user) return null
   if (loading) return (
     <div style={{ minHeight: '100dvh' }}>
-      <Particles />
-      <div className="navbar"><div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 700 }}>Admin Panel</div><div /></div>
+      <div className="navbar"><div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 700 }}>Admin Panel</div><div /></div>
       <div className="loading-screen"><div className="spinner" /><span>Loading admin dashboard...</span></div>
     </div>
   )
 
   const TABS = [
+    { key: 'hr', label: 'HR Survey' },
     { key: 'approvals', label: `Approvals (${pendingUsers.length})` },
     { key: 'pending', label: `Questions (${pending.length})` },
     { key: 'add', label: 'Add Question' },
@@ -148,11 +142,11 @@ export default function Admin() {
 
   return (
     <div style={{ minHeight: '100dvh', position: 'relative' }}>
-      <Particles />
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div className="navbar">
-          <img src="/lapizblue-logo.png" alt="LapizBlue" style={{ height: 26, filter: 'brightness(1.8)' }} />
-          <div style={{ fontFamily: 'Rajdhani', fontSize: 18, fontWeight: 700 }}>Admin Panel</div>
+          <img src="/lapizblue-logo.webp" alt="LapizBlue" width={105} height={26} style={{ height: 26, width: 'auto', filter: 'brightness(1.8)' }} />
+          <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 18, fontWeight: 700 }}>Admin Panel</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{ fontSize: 12, color: 'var(--muted)' }}>{user.username}</span>
             <button className="btn btn-ghost btn-sm" style={{ width: 'auto' }} onClick={() => router.push('/reports')}>Reports</button>
@@ -173,7 +167,7 @@ export default function Admin() {
               <div key={s.label} className="admin-stat-card">
                 <div className="admin-stat-icon" style={{ background: s.bg }}>{s.icon}</div>
                 <div>
-                  <div style={{ fontFamily: 'Rajdhani', fontSize: 26, fontWeight: 800, lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 26, fontWeight: 800, lineHeight: 1 }}>{s.value}</div>
                   <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{s.label}</div>
                 </div>
               </div>
@@ -183,6 +177,8 @@ export default function Admin() {
           <div className="tabs animate-fade stagger-1" style={{ marginBottom: 18 }}>
             {TABS.map(t => (<button key={t.key} className={`tab ${tab === t.key ? 'tab-active' : 'tab-inactive'}`} onClick={() => setTab(t.key)}>{t.label}</button>))}
           </div>
+
+          {tab === 'hr' && <HrAdmin notify={notify} />}
 
           {tab === 'approvals' && (
             <div className="animate-fade">
@@ -255,7 +251,7 @@ export default function Admin() {
 
           {tab === 'add' && (
             <div className="card animate-fade">
-              <div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 700, marginBottom: 18 }}>Add New Question</div>
+              <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 700, marginBottom: 18 }}>Add New Question</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div><label style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, display: 'block' }}>Question</label><textarea placeholder="Enter the question text..." value={newQ.question} onChange={e => setNewQ({ ...newQ, question: e.target.value })} rows={3} /></div>
                 {['a','b','c','d'].map(k => (<input key={k} placeholder={`Option ${k.toUpperCase()}`} value={newQ[`option_${k}`]} onChange={e => setNewQ({ ...newQ, [`option_${k}`]: e.target.value })} />))}
@@ -274,7 +270,7 @@ export default function Admin() {
             <div className="card animate-fade">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <div style={{ fontSize: 28 }}>🤖</div>
-                <div><div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 700 }}>AI Question Generator</div><div style={{ color: 'var(--muted)', fontSize: 13 }}>Scrape Mapei website and auto-generate questions</div></div>
+                <div><div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 700 }}>AI Question Generator</div><div style={{ color: 'var(--muted)', fontSize: 13 }}>Scrape Mapei website and auto-generate questions</div></div>
               </div>
               <input value={scrapeUrl} onChange={e => setScrapeUrl(e.target.value)} style={{ marginBottom: 14 }} />
               <button className="btn btn-primary" style={{ marginBottom: 14 }} onClick={scrapeAndGenerate}>{scrapeStatus.includes('Generating') ? <><div className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} /> Generating...</> : 'Generate Questions'}</button>
@@ -284,7 +280,7 @@ export default function Admin() {
 
           {tab === 'users' && (
             <div className="animate-fade">
-              <div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 700, marginBottom: 16 }}>Users ({users.length})</div>
+              <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 700, marginBottom: 16 }}>Users ({users.length})</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {users.map(u => (
                   <div key={u.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16 }}>
@@ -301,14 +297,14 @@ export default function Admin() {
 
           {tab === 'scores' && (
             <div className="animate-fade">
-              <div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 700, marginBottom: 16 }}>All Scores</div>
+              <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 700, marginBottom: 16 }}>All Scores</div>
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <div className="table-scroll">
                   <table><thead><tr><th>User</th><th>Score</th><th>Level</th><th>Date</th></tr></thead>
                     <tbody>{scores.map(s => (
                       <tr key={s.id}>
                         <td style={{ fontWeight: 500 }}>{s.users?.username}</td>
-                        <td><span style={{ fontFamily: 'Rajdhani', fontWeight: 800, fontSize: 18, color: s.score >= 70 ? '#4ade80' : s.score >= 50 ? '#fbbf24' : '#ff6b6b' }}>{s.score}%</span></td>
+                        <td><span style={{ fontFamily: 'var(--font-rajdhani)', fontWeight: 800, fontSize: 18, color: s.score >= 70 ? '#4ade80' : s.score >= 50 ? '#fbbf24' : '#ff6b6b' }}>{s.score}%</span></td>
                         <td><span className={`badge ${LEVEL_CLASS[s.level] || ''}`}>{s.level}</span></td>
                         <td style={{ color: 'var(--muted)', fontSize: 13 }}>{new Date(s.date).toLocaleDateString()}</td>
                       </tr>
@@ -321,7 +317,7 @@ export default function Admin() {
 
           {tab === 'assign' && (
             <div className="card animate-fade">
-              <div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 700, marginBottom: 18 }}>Assign Quiz</div>
+              <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 700, marginBottom: 18 }}>Assign Quiz</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div><label style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, display: 'block' }}>Username</label><input placeholder="Enter username" value={assignTo} onChange={e => setAssignTo(e.target.value)} /></div>
                 <div><label style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, display: 'block' }}>Difficulty Level</label><select value={assignLevel} onChange={e => setAssignLevel(e.target.value)}><option>Foundation</option><option>Practitioner</option><option>Advanced</option><option>Expert</option></select></div>
@@ -335,7 +331,7 @@ export default function Admin() {
             <div className="card animate-fade">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <div style={{ fontSize: 28 }}>📁</div>
-                <div><div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 700 }}>Bulk CSV Import</div><div style={{ color: 'var(--muted)', fontSize: 13 }}>Upload a CSV file to import questions in bulk</div></div>
+                <div><div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 700 }}>Bulk CSV Import</div><div style={{ color: 'var(--muted)', fontSize: 13 }}>Upload a CSV file to import questions in bulk</div></div>
               </div>
               <div className="explanation" style={{ marginBottom: 16, fontSize: 12, lineHeight: 1.8 }}>
                 <strong>Required CSV columns:</strong><br />

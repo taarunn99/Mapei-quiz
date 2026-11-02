@@ -1,21 +1,9 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useRouter } from 'next/navigation'
 import { AVATARS } from '../../lib/helpers'
 
-function Particles({ count = 30 }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const c = ref.current; if (!c) return; const ctx = c.getContext('2d'); let id
-    const p = []; const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight }
-    resize(); window.addEventListener('resize', resize)
-    for (let i = 0; i < count; i++) p.push({ x: Math.random()*c.width, y: Math.random()*c.height, r: Math.random()*1.5+0.5, dx: (Math.random()-0.5)*0.2, dy: (Math.random()-0.5)*0.2, o: Math.random()*0.15+0.05 })
-    function draw() { ctx.clearRect(0,0,c.width,c.height); for(const d of p){d.x+=d.dx;d.y+=d.dy;if(d.x<0)d.x=c.width;if(d.x>c.width)d.x=0;if(d.y<0)d.y=c.height;if(d.y>c.height)d.y=0;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${d.o})`;ctx.fill()}id=requestAnimationFrame(draw)}
-    draw(); return () => { cancelAnimationFrame(id); window.removeEventListener('resize', resize) }
-  }, [count])
-  return <canvas ref={ref} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
-}
 
 export default function AvatarSelect() {
   const [user, setUser] = useState(null)
@@ -43,11 +31,10 @@ export default function AvatarSelect() {
 
   return (
     <div style={{ minHeight: '100dvh', position: 'relative' }}>
-      <Particles />
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div className="navbar">
-          <img src="/lapizblue-logo.png" alt="LapizBlue" style={{ height: 26, filter: 'brightness(1.8)' }} />
-          <div style={{ fontFamily: 'Rajdhani', fontSize: 18, fontWeight: 700 }}>Choose Your Avatar</div>
+          <img src="/lapizblue-logo.webp" alt="LapizBlue" width={105} height={26} style={{ height: 26, width: 'auto', filter: 'brightness(1.8)' }} />
+          <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 18, fontWeight: 700 }}>Choose Your Avatar</div>
           <div style={{ width: 60 }} />
         </div>
 
@@ -57,7 +44,7 @@ export default function AvatarSelect() {
             <div style={{ width: 100, height: 100, borderRadius: '50%', background: sel.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, margin: '0 auto 12px', border: '3px solid rgba(255,255,255,0.2)', boxShadow: `0 0 30px ${sel.color}40` }}>
               {sel.emoji}
             </div>
-            <div style={{ fontFamily: 'Rajdhani', fontSize: 22, fontWeight: 700 }}>{sel.name}</div>
+            <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 22, fontWeight: 700 }}>{sel.name}</div>
             <div style={{ fontSize: 13, color: 'var(--muted)' }}>{user.username}</div>
           </div>
 

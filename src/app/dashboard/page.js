@@ -1,23 +1,11 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useRouter } from 'next/navigation'
 import { AVATARS, getAvatar, getRank, getNextRank, LEVELS, LEVEL_CLASS } from '../../lib/helpers'
 
 const BADGE_ICONS = { 'First Quiz': '🎯', 'Perfect Score': '💯', 'Level Up': '⬆️', 'On Fire': '🔥', 'Weekly Champion': '🏆', 'Master': '👑' }
 
-function Particles({ count = 25 }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const c = ref.current; if (!c) return; const ctx = c.getContext('2d'); let id
-    const p = []; const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight }
-    resize(); window.addEventListener('resize', resize)
-    for (let i = 0; i < count; i++) p.push({ x: Math.random()*c.width, y: Math.random()*c.height, r: Math.random()*1.5+0.5, dx: (Math.random()-0.5)*0.2, dy: (Math.random()-0.5)*0.2, o: Math.random()*0.15+0.05 })
-    function draw() { ctx.clearRect(0,0,c.width,c.height); for(const d of p){d.x+=d.dx;d.y+=d.dy;if(d.x<0)d.x=c.width;if(d.x>c.width)d.x=0;if(d.y<0)d.y=c.height;if(d.y>c.height)d.y=0;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${d.o})`;ctx.fill()}id=requestAnimationFrame(draw)}
-    draw(); return () => { cancelAnimationFrame(id); window.removeEventListener('resize', resize) }
-  }, [count])
-  return <canvas ref={ref} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
-}
 
 function getGreeting() { const h = new Date().getHours(); return h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening' }
 
@@ -74,10 +62,9 @@ export default function Dashboard() {
 
   if (loading) return (
     <div style={{ minHeight: '100dvh' }}>
-      <Particles />
       <div className="navbar">
-        <img src="/lapizblue-logo.png" alt="LapizBlue" style={{ height: 26, filter: 'brightness(1.8)' }} />
-        <div style={{ fontFamily: 'Rajdhani', fontSize: 18, fontWeight: 700 }}>Dashboard</div>
+        <img src="/lapizblue-logo.webp" alt="LapizBlue" width={105} height={26} style={{ height: 26, width: 'auto', filter: 'brightness(1.8)' }} />
+        <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 18, fontWeight: 700 }}>Dashboard</div>
         <div style={{ width: 60 }} />
       </div>
       <div className="page">
@@ -121,11 +108,10 @@ export default function Dashboard() {
 
   return (
     <div style={{ minHeight: '100dvh', position: 'relative' }}>
-      <Particles />
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div className="navbar">
-          <img src="/lapizblue-logo.png" alt="LapizBlue" style={{ height: 26, filter: 'brightness(1.8)' }} />
-          <div style={{ fontFamily: 'Rajdhani', fontSize: 18, fontWeight: 700 }}>Dashboard</div>
+          <img src="/lapizblue-logo.webp" alt="LapizBlue" width={105} height={26} style={{ height: 26, width: 'auto', filter: 'brightness(1.8)' }} />
+          <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 18, fontWeight: 700 }}>Dashboard</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 30, height: 30, borderRadius: '50%', background: avatar.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{avatar.emoji}</div>
             <button className="btn btn-ghost btn-sm" style={{ width: 'auto' }} onClick={() => { localStorage.removeItem('user'); router.push('/') }}>Logout</button>
@@ -141,7 +127,7 @@ export default function Dashboard() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, color: 'var(--muted)' }}>{getGreeting()}</div>
-                <div style={{ fontSize: 22, fontFamily: 'Rajdhani', fontWeight: 800, marginTop: 2 }}>{user.username}</div>
+                <div style={{ fontSize: 22, fontFamily: 'var(--font-rajdhani)', fontWeight: 800, marginTop: 2 }}>{user.username}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
                   <span style={{ background: `${rank.color}20`, color: rank.color, border: `1px solid ${rank.color}40`, padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
                     {rank.icon} {rank.name}
@@ -173,7 +159,7 @@ export default function Dashboard() {
           {/* Assignments */}
           {assignments.length > 0 && (
             <div className="card animate-fade stagger-1" style={{ marginBottom: 16, borderColor: 'rgba(227,6,19,0.4)', borderWidth: 2 }}>
-              <div style={{ color: '#ff6b6b', fontWeight: 700, marginBottom: 12, fontFamily: 'Rajdhani', fontSize: 18 }}>Mandatory Quiz Pending</div>
+              <div style={{ color: '#ff6b6b', fontWeight: 700, marginBottom: 12, fontFamily: 'var(--font-rajdhani)', fontSize: 18 }}>Mandatory Quiz Pending</div>
               {assignments.map(a => (
                 <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '8px 0' }}>
                   <span className={`badge ${LEVEL_CLASS[a.quiz_level] || ''}`}>{a.quiz_level}</span>
@@ -223,7 +209,7 @@ export default function Dashboard() {
               { val: rank.name, label: 'Rank', color: rank.color },
             ].map(s => (
               <div key={s.label} className="stat-card">
-                <div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 800, color: s.color }}>{s.val}</div>
+                <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 800, color: s.color }}>{s.val}</div>
                 <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{s.label}</div>
               </div>
             ))}
@@ -232,15 +218,15 @@ export default function Dashboard() {
           {/* Team Competition */}
           {topUsers.length > 0 && (
             <div className="card animate-fade stagger-4" style={{ marginBottom: 20 }}>
-              <div style={{ fontFamily: 'Rajdhani', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Team Competition</div>
+              <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Team Competition</div>
               {topUsers.slice(0, 3).map((u, i) => {
                 const av = getAvatar(u.avatar)
                 return (
                   <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                    <span style={{ fontFamily: 'Rajdhani', fontSize: 16, fontWeight: 800, color: ['#FFD700', '#C0C0C0', '#CD7F32'][i], width: 20 }}>#{i + 1}</span>
+                    <span style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 16, fontWeight: 800, color: ['#FFD700', '#C0C0C0', '#CD7F32'][i], width: 20 }}>#{i + 1}</span>
                     <div style={{ width: 28, height: 28, borderRadius: '50%', background: av.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{av.emoji}</div>
                     <div style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>{u.username} {u.id === user.id ? <span style={{ color: '#60a5fa', fontSize: 11 }}>(You)</span> : ''}</div>
-                    <span style={{ fontFamily: 'Rajdhani', fontWeight: 700, fontSize: 14 }}>{u.xp || 0} XP</span>
+                    <span style={{ fontFamily: 'var(--font-rajdhani)', fontWeight: 700, fontSize: 14 }}>{u.xp || 0} XP</span>
                   </div>
                 )
               })}
@@ -258,7 +244,7 @@ export default function Dashboard() {
             ].map(item => (
               <div key={item.label} className="action-card card-hover" onClick={item.action}>
                 <div style={{ fontSize: 28, marginBottom: 6 }}>{item.icon}</div>
-                <div style={{ fontWeight: 700, fontSize: 14, fontFamily: 'Rajdhani' }}>{item.label}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, fontFamily: 'var(--font-rajdhani)' }}>{item.label}</div>
               </div>
             ))}
           </div>
@@ -266,14 +252,14 @@ export default function Dashboard() {
           {/* Recent scores */}
           {scores.length > 0 && (
             <div className="card animate-fade" style={{ marginBottom: 16 }}>
-              <div style={{ fontFamily: 'Rajdhani', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Recent Scores</div>
+              <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Recent Scores</div>
               {scores.map((s, i) => (
                 <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i < scores.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                   <div>
                     <span className={`badge ${LEVEL_CLASS[s.level] || ''}`}>{s.level}</span>
                     <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 8 }}>{s.category || 'General'}</span>
                   </div>
-                  <div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 800, color: s.score >= 80 ? '#4ade80' : s.score >= 50 ? '#fbbf24' : '#ff6b6b' }}>{s.score}%</div>
+                  <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 800, color: s.score >= 80 ? '#4ade80' : s.score >= 50 ? '#fbbf24' : '#ff6b6b' }}>{s.score}%</div>
                 </div>
               ))}
             </div>

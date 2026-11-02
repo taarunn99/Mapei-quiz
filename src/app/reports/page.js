@@ -1,24 +1,12 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useRouter } from 'next/navigation'
 import { getAvatar, getRank, CATEGORIES } from '../../lib/helpers'
-import { LineChart, Line, BarChart, Bar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
+import dynamic from 'next/dynamic'
 
-function Particles({ count = 20 }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const c = ref.current; if (!c) return; const ctx = c.getContext('2d'); let id
-    const p = []; const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight }
-    resize(); window.addEventListener('resize', resize)
-    for (let i = 0; i < count; i++) p.push({ x: Math.random()*c.width, y: Math.random()*c.height, r: Math.random()*1.5+0.5, dx: (Math.random()-0.5)*0.2, dy: (Math.random()-0.5)*0.2, o: Math.random()*0.12+0.04 })
-    function draw() { ctx.clearRect(0,0,c.width,c.height); for(const d of p){d.x+=d.dx;d.y+=d.dy;if(d.x<0)d.x=c.width;if(d.x>c.width)d.x=0;if(d.y<0)d.y=c.height;if(d.y>c.height)d.y=0;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${d.o})`;ctx.fill()}id=requestAnimationFrame(draw)}
-    draw(); return () => { cancelAnimationFrame(id); window.removeEventListener('resize', resize) }
-  }, [count])
-  return <canvas ref={ref} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
-}
+const ReportCharts = dynamic(() => import('../../components/ReportCharts'), { ssr: false, loading: () => <div className="loading-screen" style={{ minHeight: 200 }}><div className="spinner" /></div> })
 
-const chartStyle = { fontSize: 11, fill: 'rgba(255,255,255,0.4)' }
 
 export default function Reports() {
   const [user, setUser] = useState(null)
@@ -97,10 +85,9 @@ export default function Reports() {
 
   if (loading) return (
     <div style={{ minHeight: '100dvh' }}>
-      <Particles />
       <div className="navbar">
-        <img src="/lapizblue-logo.png" alt="LapizBlue" style={{ height: 26, filter: 'brightness(1.8)' }} />
-        <div style={{ fontFamily: 'Rajdhani', fontSize: 18, fontWeight: 700 }}>Reports</div>
+        <img src="/lapizblue-logo.webp" alt="LapizBlue" width={105} height={26} style={{ height: 26, width: 'auto', filter: 'brightness(1.8)' }} />
+        <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 18, fontWeight: 700 }}>Reports</div>
         <div style={{ width: 60 }} />
       </div>
       <div className="loading-screen"><div className="spinner" /><span>Loading reports...</span></div>
@@ -118,11 +105,10 @@ export default function Reports() {
 
     return (
       <div style={{ minHeight: '100dvh', position: 'relative' }}>
-        <Particles />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div className="navbar">
-            <img src="/lapizblue-logo.png" alt="LapizBlue" style={{ height: 26, filter: 'brightness(1.8)' }} />
-            <div style={{ fontFamily: 'Rajdhani', fontSize: 18, fontWeight: 700 }}>Company Reports</div>
+            <img src="/lapizblue-logo.webp" alt="LapizBlue" width={105} height={26} style={{ height: 26, width: 'auto', filter: 'brightness(1.8)' }} />
+            <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 18, fontWeight: 700 }}>Company Reports</div>
             <button className="btn btn-ghost btn-sm" style={{ width: 'auto' }} onClick={() => router.push('/admin')}>Back</button>
           </div>
           <div className="page-wide">
@@ -136,14 +122,14 @@ export default function Reports() {
               ].map(s => (
                 <div key={s.label} className="admin-stat-card">
                   <div className="admin-stat-icon" style={{ background: s.bg }}>{s.icon}</div>
-                  <div><div style={{ fontFamily: 'Rajdhani', fontSize: 26, fontWeight: 800, lineHeight: 1 }}>{s.value}</div><div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{s.label}</div></div>
+                  <div><div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 26, fontWeight: 800, lineHeight: 1 }}>{s.value}</div><div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{s.label}</div></div>
                 </div>
               ))}
             </div>
 
             {/* Staff table */}
             <div className="card animate-fade stagger-1" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', fontFamily: 'Rajdhani', fontSize: 18, fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>Staff Performance</div>
+              <div style={{ padding: '16px 20px', fontFamily: 'var(--font-rajdhani)', fontSize: 18, fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>Staff Performance</div>
               <div className="table-scroll">
                 <table>
                   <thead><tr><th>User</th><th>Rank</th><th>XP</th><th>Avg Score</th><th>Quizzes</th><th>Status</th></tr></thead>
@@ -160,8 +146,8 @@ export default function Reports() {
                             <span style={{ fontWeight: 600 }}>{u.username}</span>
                           </div></td>
                           <td><span style={{ fontSize: 11, color: rk.color, fontWeight: 600 }}>{rk.icon} {rk.name}</span></td>
-                          <td style={{ fontFamily: 'Rajdhani', fontWeight: 700 }}>{u.xp || 0}</td>
-                          <td><span style={{ fontFamily: 'Rajdhani', fontWeight: 800, color: avg >= 70 ? '#4ade80' : avg >= 50 ? '#fbbf24' : '#ff6b6b' }}>{avg}%</span></td>
+                          <td style={{ fontFamily: 'var(--font-rajdhani)', fontWeight: 700 }}>{u.xp || 0}</td>
+                          <td><span style={{ fontFamily: 'var(--font-rajdhani)', fontWeight: 800, color: avg >= 70 ? '#4ade80' : avg >= 50 ? '#fbbf24' : '#ff6b6b' }}>{avg}%</span></td>
                           <td>{uScores.length}</td>
                           <td><span className={`badge ${uScores.length === 0 ? '' : avg >= 70 ? 'badge-green' : avg >= 50 ? 'badge-yellow' : 'badge-red'}`}>
                             {uScores.length === 0 ? 'Never' : avg >= 70 ? 'Strong' : avg >= 50 ? 'Average' : 'Needs Work'}
@@ -218,11 +204,10 @@ export default function Reports() {
 
   return (
     <div style={{ minHeight: '100dvh', position: 'relative' }}>
-      <Particles />
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div className="navbar">
-          <img src="/lapizblue-logo.png" alt="LapizBlue" style={{ height: 26, filter: 'brightness(1.8)' }} />
-          <div style={{ fontFamily: 'Rajdhani', fontSize: 18, fontWeight: 700 }}>My Reports</div>
+          <img src="/lapizblue-logo.webp" alt="LapizBlue" width={105} height={26} style={{ height: 26, width: 'auto', filter: 'brightness(1.8)' }} />
+          <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 18, fontWeight: 700 }}>My Reports</div>
           <button className="btn btn-ghost btn-sm" style={{ width: 'auto' }} onClick={() => router.push('/dashboard')}>Back</button>
         </div>
         <div className="page" style={{ maxWidth: 600 }}>
@@ -234,67 +219,23 @@ export default function Reports() {
               { val: `${best}%`, label: 'Best', color: '#4ade80' },
             ].map(s => (
               <div key={s.label} className="stat-card">
-                <div style={{ fontFamily: 'Rajdhani', fontSize: 22, fontWeight: 800, color: s.color }}>{s.val}</div>
+                <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 22, fontWeight: 800, color: s.color }}>{s.val}</div>
                 <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{s.label}</div>
               </div>
             ))}
           </div>
           <div className="animate-fade stagger-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
             <div className="stat-card">
-              <div style={{ fontFamily: 'Rajdhani', fontSize: 22, fontWeight: 800, color: '#fbbf24' }}>{passRate}%</div>
+              <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 22, fontWeight: 800, color: '#fbbf24' }}>{passRate}%</div>
               <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>Pass Rate</div>
             </div>
             <div className="stat-card">
-              <div style={{ fontFamily: 'Rajdhani', fontSize: 22, fontWeight: 800, color: '#a78bfa' }}>{scores.length}</div>
+              <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 22, fontWeight: 800, color: '#a78bfa' }}>{scores.length}</div>
               <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>Quizzes Done</div>
             </div>
           </div>
 
-          {/* Score trend */}
-          {trendData.length > 1 && (
-            <div className="card animate-fade stagger-2" style={{ marginBottom: 20 }}>
-              <div style={{ fontFamily: 'Rajdhani', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Your Score Journey</div>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={trendData}>
-                  <XAxis dataKey="date" tick={chartStyle} />
-                  <YAxis domain={[0, 100]} tick={chartStyle} />
-                  <Tooltip contentStyle={{ background: '#162640', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: 'white', fontSize: 12 }} />
-                  <ReferenceLine y={70} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" label={{ value: 'Pass', fill: 'rgba(255,255,255,0.25)', fontSize: 10 }} />
-                  <Line type="monotone" dataKey="score" stroke="#E30613" strokeWidth={2} dot={{ fill: '#E30613', r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {/* Category radar */}
-          {radarData.some(r => r.score > 0) && (
-            <div className="card animate-fade stagger-3" style={{ marginBottom: 20 }}>
-              <div style={{ fontFamily: 'Rajdhani', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Category Mastery</div>
-              <ResponsiveContainer width="100%" height={250}>
-                <RadarChart data={radarData}>
-                  <PolarGrid stroke="rgba(255,255,255,0.08)" />
-                  <PolarAngleAxis dataKey="category" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} />
-                  <PolarRadiusAxis domain={[0, 100]} tick={false} />
-                  <Radar dataKey="score" stroke="#E30613" fill="#E30613" fillOpacity={0.15} strokeWidth={2} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {/* Weekly XP */}
-          {weeklyData.some(w => w.xp > 0) && (
-            <div className="card animate-fade stagger-4" style={{ marginBottom: 20 }}>
-              <div style={{ fontFamily: 'Rajdhani', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Weekly XP Earned</div>
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={weeklyData}>
-                  <XAxis dataKey="week" tick={chartStyle} />
-                  <YAxis tick={chartStyle} />
-                  <Tooltip contentStyle={{ background: '#162640', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: 'white', fontSize: 12 }} />
-                  <Bar dataKey="xp" fill="#E30613" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+          <ReportCharts trendData={trendData} radarData={radarData} weeklyData={weeklyData} />
 
           {/* Strongest / Weakest */}
           {catAvgs.length >= 2 && (
@@ -302,14 +243,14 @@ export default function Reports() {
               <div className="card" style={{ textAlign: 'center', borderColor: 'rgba(34,197,94,0.3)' }}>
                 <div style={{ fontSize: 28, marginBottom: 6 }}>🏆</div>
                 <div style={{ fontSize: 12, color: 'var(--muted)' }}>Strongest</div>
-                <div style={{ fontFamily: 'Rajdhani', fontSize: 16, fontWeight: 700, color: '#4ade80', marginTop: 4 }}>{strongest.category}</div>
-                <div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 800 }}>{strongest.score}%</div>
+                <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 16, fontWeight: 700, color: '#4ade80', marginTop: 4 }}>{strongest.category}</div>
+                <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 800 }}>{strongest.score}%</div>
               </div>
               <div className="card" style={{ textAlign: 'center', borderColor: 'rgba(245,158,11,0.3)' }}>
                 <div style={{ fontSize: 28, marginBottom: 6 }}>🎯</div>
                 <div style={{ fontSize: 12, color: 'var(--muted)' }}>Needs Work</div>
-                <div style={{ fontFamily: 'Rajdhani', fontSize: 16, fontWeight: 700, color: '#fbbf24', marginTop: 4 }}>{weakest.category}</div>
-                <div style={{ fontFamily: 'Rajdhani', fontSize: 20, fontWeight: 800 }}>{weakest.score}%</div>
+                <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 16, fontWeight: 700, color: '#fbbf24', marginTop: 4 }}>{weakest.category}</div>
+                <div style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 20, fontWeight: 800 }}>{weakest.score}%</div>
               </div>
             </div>
           )}
